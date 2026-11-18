@@ -100,11 +100,19 @@ fn channel_status(command: u8, channel: i32) -> u8 {
 
 /// Match the on-wire clamping used by Kloks MidiManager.
 pub fn note_on(channel: i32, note: i32, velocity: i32) -> [u8; 3] {
-    [channel_status(0x90, channel), clamp_data(note), clamp_data(velocity)]
+    [
+        channel_status(0x90, channel),
+        clamp_data(note),
+        clamp_data(velocity),
+    ]
 }
 pub fn note_off(channel: i32, note: i32) -> [u8; 3] {
     [channel_status(0x80, channel), clamp_data(note), 0]
 }
 pub fn control_change(channel: i32, controller: i32, value: i32) -> [u8; 3] {
-    [channel_status(0xB0, channel), clamp_data(controller), clamp_data(value)]
+    [
+        channel_status(0xB0, channel),
+        clamp_data(controller),
+        clamp_data(value),
+    ]
 }

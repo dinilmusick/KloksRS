@@ -51,18 +51,27 @@ fn tempo_changes_are_continuous_and_signature_changes_update_bar() {
 #[test]
 fn missed_ticks_are_bounded_and_skip_policy_reports_dropped_events() {
     let mut catchup = ClockService::new(ClockOptions {
-        resolution: 4, max_catch_up_ticks: 3, ..ClockOptions::default()
-    }).unwrap();
+        resolution: 4,
+        max_catch_up_ticks: 3,
+        ..ClockOptions::default()
+    })
+    .unwrap();
     catchup.start(0.0).unwrap();
     let events = catchup.poll(1000.0).unwrap(); // eight ticks due, last three delivered
     assert_eq!(events.len(), 3);
-    assert_eq!(events.iter().map(|e| e.position.tick).collect::<Vec<_>>(), vec![6,7,8]);
+    assert_eq!(
+        events.iter().map(|e| e.position.tick).collect::<Vec<_>>(),
+        vec![6, 7, 8]
+    );
     assert_eq!(events[2].missed_ticks, 5);
     assert_eq!(catchup.poll(1000.0).unwrap().len(), 0);
 
     let mut skip = ClockService::new(ClockOptions {
-        resolution: 4, missed_tick_policy: MissedTickPolicy::Skip, ..ClockOptions::default()
-    }).unwrap();
+        resolution: 4,
+        missed_tick_policy: MissedTickPolicy::Skip,
+        ..ClockOptions::default()
+    })
+    .unwrap();
     skip.start(0.0).unwrap();
     let events = skip.poll(1000.0).unwrap();
     assert_eq!(events.len(), 1);
@@ -73,19 +82,49 @@ fn missed_ticks_are_bounded_and_skip_policy_reports_dropped_events() {
 
 #[test]
 fn invalid_parameters_fail_closed_and_dispose_blocks_operations() {
-    assert_eq!(ClockService::new(ClockOptions { tempo: f64::NAN,
-        ..ClockOptions::default() }).unwrap_err(), ClockError::InvalidTempo);
-    assert_eq!(ClockService::new(ClockOptions { resolution: 0,
-        ..ClockOptions::default() }).unwrap_err(), ClockError::InvalidResolution);
-    assert_eq!(ClockService::new(ClockOptions { denominator: 3,
-        ..ClockOptions::default() }).unwrap_err(), ClockError::InvalidSignature);
-    assert_eq!(ClockService::new(ClockOptions { max_catch_up_ticks: 0,
-        ..ClockOptions::default() }).unwrap_err(), ClockError::InvalidCatchUpLimit);
+    assert_eq!(
+        ClockService::new(ClockOptions {
+            tempo: f64::NAN,
+            ..ClockOptions::default()
+        })
+        .unwrap_err(),
+        ClockError::InvalidTempo
+    );
+    assert_eq!(
+        ClockService::new(ClockOptions {
+            resolution: 0,
+            ..ClockOptions::default()
+        })
+        .unwrap_err(),
+        ClockError::InvalidResolution
+    );
+    assert_eq!(
+        ClockService::new(ClockOptions {
+            denominator: 3,
+            ..ClockOptions::default()
+        })
+        .unwrap_err(),
+        ClockError::InvalidSignature
+    );
+    assert_eq!(
+        ClockService::new(ClockOptions {
+            max_catch_up_ticks: 0,
+            ..ClockOptions::default()
+        })
+        .unwrap_err(),
+        ClockError::InvalidCatchUpLimit
+    );
     let mut clock = new_clock();
     assert_eq!(clock.start(-1.0), Err(ClockError::InvalidTime));
     assert_eq!(clock.set_tempo(0.0, 0.0), Err(ClockError::InvalidTempo));
-    assert_eq!(clock.set_resolution(961, 0.0), Err(ClockError::InvalidResolution));
-    assert_eq!(clock.set_time_signature(33, 8), Err(ClockError::InvalidSignature));
+    assert_eq!(
+        clock.set_resolution(961, 0.0),
+        Err(ClockError::InvalidResolution)
+    );
+    assert_eq!(
+        clock.set_time_signature(33, 8),
+        Err(ClockError::InvalidSignature)
+    );
     clock.dispose();
     assert_eq!(clock.start(0.0), Err(ClockError::Disposed));
     assert_eq!(clock.reset(), Err(ClockError::Disposed));
@@ -94,9 +133,13 @@ fn invalid_parameters_fail_closed_and_dispose_blocks_operations() {
 #[test]
 fn tick_subdivision_and_elapsed_time_track_musical_position() {
     let mut clock = ClockService::new(ClockOptions {
-        tempo: 120.0, resolution: 4, numerator: 3, denominator: 4,
+        tempo: 120.0,
+        resolution: 4,
+        numerator: 3,
+        denominator: 4,
         ..ClockOptions::default()
-    }).unwrap();
+    })
+    .unwrap();
     clock.start(50.0).unwrap();
     let p = clock.snapshot(2050.0).unwrap();
     assert_eq!(p.bar, 2);

@@ -313,3 +313,5 @@ impl ClockService {
         self.state = ClockRunState::Stopped;
     }
 }
+
+pub mod midi;

@@ -12,7 +12,10 @@ fn note_on_and_zero_velocity_note_off_follow_kloks_decoder() {
     assert_eq!(off.kind, MidiEventKind::NoteOff);
     assert_eq!(off.channel, 16);
     assert_eq!(off.velocity, 0.0);
-    assert_eq!(decode_channel_event(&[0x80, 36, 100]).unwrap().note_name, "C2");
+    assert_eq!(
+        decode_channel_event(&[0x80, 36, 100]).unwrap().note_name,
+        "C2"
+    );
 }
 
 #[test]
@@ -27,8 +30,14 @@ fn cc_pitch_bend_and_unsupported_messages() {
     let center = decode_channel_event(&[0xE0, 0, 64]).unwrap();
     assert_eq!(center.kind, MidiEventKind::PitchBend);
     assert_eq!(center.value, Some(0));
-    assert_eq!(decode_channel_event(&[0xE0, 0, 0]).unwrap().value, Some(-8192));
-    assert_eq!(decode_channel_event(&[0xEF, 127, 127]).unwrap().value, Some(8191));
+    assert_eq!(
+        decode_channel_event(&[0xE0, 0, 0]).unwrap().value,
+        Some(-8192)
+    );
+    assert_eq!(
+        decode_channel_event(&[0xEF, 127, 127]).unwrap().value,
+        Some(8191)
+    );
     assert_eq!(decode_channel_event(&[0xC0, 10]), None);
     assert_eq!(decode_channel_event(&[]), None);
     assert_eq!(decode_channel_event(&[0x90]), None);

@@ -60,7 +60,7 @@ fn write_string(out: &mut Vec<u8>, text: &str) -> Result<(), OscError> {
     }
     out.extend_from_slice(text.as_bytes());
     out.push(0);
-    while out.len() % 4 != 0 {
+    while !out.len().is_multiple_of(4) {
         out.push(0);
     }
     Ok(())
@@ -165,7 +165,7 @@ fn encode_internal(packet: &OscPacket, depth: usize) -> Result<Vec<u8>, OscError
                         }
                         out.extend_from_slice(&(v.len() as i32).to_be_bytes());
                         out.extend_from_slice(v);
-                        while out.len() % 4 != 0 {
+                        while !out.len().is_multiple_of(4) {
                             out.push(0);
                         }
                     }
@@ -203,7 +203,7 @@ fn decode_internal(bytes: &[u8], depth: usize) -> Result<OscPacket, OscError> {
     if bytes.len() > MAX_PACKET_BYTES {
         return Err(OscError::TooLarge);
     }
-    if bytes.len() % 4 != 0 {
+    if !bytes.len().is_multiple_of(4) {
         return Err(OscError::InvalidPadding);
     }
     let mut pos = 0;

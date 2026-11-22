@@ -82,7 +82,8 @@ impl ServiceRegistry {
         {
             return Err(RegistryError::InvalidDefinition);
         }
-        self.states.insert(definition.id.clone(), ServiceState::Registered);
+        self.states
+            .insert(definition.id.clone(), ServiceState::Registered);
         self.definitions.insert(definition.id.clone(), definition);
         Ok(())
     }
@@ -92,20 +93,28 @@ impl ServiceRegistry {
     }
 
     pub fn state(&self, id: &str) -> Result<ServiceState, RegistryError> {
-        self.states.get(id).copied().ok_or(RegistryError::UnknownService)
+        self.states
+            .get(id)
+            .copied()
+            .ok_or(RegistryError::UnknownService)
     }
 
     pub fn discover(&self, capability: &str) -> Vec<&ServiceDefinition> {
         self.definitions
             .values()
-            .filter(|d| d.capabilities.contains(capability)
-                && self.states.get(&d.id) != Some(&ServiceState::Disposed))
+            .filter(|d| {
+                d.capabilities.contains(capability)
+                    && self.states.get(&d.id) != Some(&ServiceState::Disposed)
+            })
             .collect()
     }
 
     fn visit(
-        &self, id: &str, active: &mut BTreeSet<String>,
-        complete: &mut BTreeSet<String>, out: &mut Vec<String>,
+        &self,
+        id: &str,
+        active: &mut BTreeSet<String>,
+        complete: &mut BTreeSet<String>,
+        out: &mut Vec<String>,
     ) -> Result<(), RegistryError> {
         if complete.contains(id) {
             return Ok(());
@@ -113,7 +122,10 @@ impl ServiceRegistry {
         if !active.insert(id.to_string()) {
             return Err(RegistryError::DependencyCycle);
         }
-        let definition = self.definitions.get(id).ok_or(RegistryError::MissingDependency)?;
+        let definition = self
+            .definitions
+            .get(id)
+            .ok_or(RegistryError::MissingDependency)?;
         if self.states.get(id) == Some(&ServiceState::Disposed) {
             return Err(RegistryError::InvalidTransition);
         }
@@ -144,16 +156,23 @@ impl ServiceRegistry {
         let previous = self.state(id)?;
         let allowed = matches!(
             (previous, next),
-            (Registered, Initialized) | (Initialized, Running)
-                | (Stopped, Running) | (Running, Stopped)
-                | (Stopped, Initialized) | (Registered, Disposed)
-                | (Initialized, Disposed) | (Stopped, Disposed)
+            (Registered, Initialized)
+                | (Initialized, Running)
+                | (Stopped, Running)
+                | (Running, Stopped)
+                | (Stopped, Initialized)
+                | (Registered, Disposed)
+                | (Initialized, Disposed)
+                | (Stopped, Disposed)
         );
         if !allowed {
             return Err(RegistryError::InvalidTransition);
         }
         if next == Running {
-            let definition = self.definitions.get(id).ok_or(RegistryError::UnknownService)?;
+            let definition = self
+                .definitions
+                .get(id)
+                .ok_or(RegistryError::UnknownService)?;
             for dependency in &definition.dependencies {
                 if self.state(dependency)? != Running {
                     return Err(RegistryError::DependencyNotRunning);
@@ -168,7 +187,11 @@ impl ServiceRegistry {
         if self.state(id)? != ServiceState::Disposed {
             return Err(RegistryError::InvalidTransition);
         }
-        if self.definitions.values().any(|d| d.id != id && d.dependencies.contains(id)) {
+        if self
+            .definitions
+            .values()
+            .any(|d| d.id != id && d.dependencies.contains(id))
+        {
             return Err(RegistryError::HasDependents);
         }
         self.definitions.remove(id);
@@ -196,7 +219,10 @@ impl<T> EventQueue<T> {
         if capacity == 0 {
             return Err(RegistryError::InvalidDefinition);
         }
-        Ok(Self { capacity, items: VecDeque::new() })
+        Ok(Self {
+            capacity,
+            items: VecDeque::new(),
+        })
     }
 
     pub fn publish(&mut self, item: T) -> Result<(), RegistryError> {

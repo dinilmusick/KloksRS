@@ -6,8 +6,9 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-pub mod registry;
 pub mod graph;
+pub mod midi;
+pub mod registry;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ClockRunState {

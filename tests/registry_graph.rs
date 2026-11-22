@@ -6,19 +6,37 @@ use kloksrs::registry::{
 #[test]
 fn registry_resolves_transitive_dependencies_with_stable_order() {
     let mut registry = ServiceRegistry::new();
-    registry.register(ServiceDefinition::new("storage", "1").unwrap()).unwrap();
-    registry.register(ServiceDefinition::new("network", "1").unwrap()).unwrap();
-    registry.register(ServiceDefinition::new("midi", "1").unwrap()
-        .with_dependency("storage").with_dependency("network")
-        .with_capability("midi-output")).unwrap();
-    assert_eq!(registry.dependency_order("midi").unwrap(),
-        vec!["network", "storage", "midi"]);
+    registry
+        .register(ServiceDefinition::new("storage", "1").unwrap())
+        .unwrap();
+    registry
+        .register(ServiceDefinition::new("network", "1").unwrap())
+        .unwrap();
+    registry
+        .register(
+            ServiceDefinition::new("midi", "1")
+                .unwrap()
+                .with_dependency("storage")
+                .with_dependency("network")
+                .with_capability("midi-output"),
+        )
+        .unwrap();
+    assert_eq!(
+        registry.dependency_order("midi").unwrap(),
+        vec!["network", "storage", "midi"]
+    );
     assert_eq!(registry.discover("midi-output").len(), 1);
-    assert_eq!(registry.transition("midi", ServiceState::Running),
-        Err(RegistryError::InvalidTransition));
-    registry.transition("midi", ServiceState::Initialized).unwrap();
-    assert_eq!(registry.transition("midi", ServiceState::Running),
-        Err(RegistryError::DependencyNotRunning));
+    assert_eq!(
+        registry.transition("midi", ServiceState::Running),
+        Err(RegistryError::InvalidTransition)
+    );
+    registry
+        .transition("midi", ServiceState::Initialized)
+        .unwrap();
+    assert_eq!(
+        registry.transition("midi", ServiceState::Running),
+        Err(RegistryError::DependencyNotRunning)
+    );
     for id in ["network", "storage"] {
         registry.transition(id, ServiceState::Initialized).unwrap();
         registry.transition(id, ServiceState::Running).unwrap();
@@ -34,14 +52,35 @@ fn registry_resolves_transitive_dependencies_with_stable_order() {
 #[test]
 fn registry_fails_closed_on_missing_cycles_duplicates_and_dependents() {
     let mut r = ServiceRegistry::new();
-    r.register(ServiceDefinition::new("a", "1").unwrap().with_dependency("b")).unwrap();
-    assert_eq!(r.dependency_order("a"), Err(RegistryError::MissingDependency));
-    r.register(ServiceDefinition::new("b", "1").unwrap().with_dependency("a")).unwrap();
+    r.register(
+        ServiceDefinition::new("a", "1")
+            .unwrap()
+            .with_dependency("b"),
+    )
+    .unwrap();
+    assert_eq!(
+        r.dependency_order("a"),
+        Err(RegistryError::MissingDependency)
+    );
+    r.register(
+        ServiceDefinition::new("b", "1")
+            .unwrap()
+            .with_dependency("a"),
+    )
+    .unwrap();
     assert_eq!(r.dependency_order("a"), Err(RegistryError::DependencyCycle));
-    assert_eq!(r.register(ServiceDefinition::new("a", "1").unwrap()),
-        Err(RegistryError::DuplicateService));
-    assert_eq!(r.register(ServiceDefinition::new("self", "1").unwrap().with_dependency("self")),
-        Err(RegistryError::InvalidDefinition));
+    assert_eq!(
+        r.register(ServiceDefinition::new("a", "1").unwrap()),
+        Err(RegistryError::DuplicateService)
+    );
+    assert_eq!(
+        r.register(
+            ServiceDefinition::new("self", "1")
+                .unwrap()
+                .with_dependency("self")
+        ),
+        Err(RegistryError::InvalidDefinition)
+    );
     r.transition("a", ServiceState::Disposed).unwrap();
     assert_eq!(r.unregister("a"), Err(RegistryError::HasDependents));
 }
@@ -76,15 +115,28 @@ fn event_queue_bounds_and_fifo_are_explicit() {
 #[test]
 fn orchestration_plan_reuses_registry_and_rejects_missing_services() {
     let mut registry = ServiceRegistry::new();
-    registry.register(ServiceDefinition::new("service", "1").unwrap()).unwrap();
+    registry
+        .register(ServiceDefinition::new("service", "1").unwrap())
+        .unwrap();
     let steps = vec![
-        OrchestrationStep { id: "two".into(), service_id: "service".into(),
-            operation: "read".into(), depends_on: vec!["one".into()] },
-        OrchestrationStep { id: "one".into(), service_id: "service".into(),
-            operation: "write".into(), depends_on: vec![] },
+        OrchestrationStep {
+            id: "two".into(),
+            service_id: "service".into(),
+            operation: "read".into(),
+            depends_on: vec!["one".into()],
+        },
+        OrchestrationStep {
+            id: "one".into(),
+            service_id: "service".into(),
+            operation: "write".into(),
+            depends_on: vec![],
+        },
     ];
     assert_eq!(compile_plan(&steps, &registry).unwrap(), vec!["one", "two"]);
     let mut broken = steps.clone();
     broken[0].service_id = "unknown".into();
-    assert_eq!(compile_plan(&broken, &registry), Err(GraphError::UnknownService));
+    assert_eq!(
+        compile_plan(&broken, &registry),
+        Err(GraphError::UnknownService)
+    );
 }

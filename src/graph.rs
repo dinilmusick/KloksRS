@@ -1,8 +1,8 @@
 //! Portable state and orchestration dependency graph without rendering ownership.
+use crate::registry::ServiceRegistry;
 use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use crate::registry::ServiceRegistry;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GraphError {
@@ -22,7 +22,10 @@ pub struct DirectedGraph<T> {
 
 impl<T> Default for DirectedGraph<T> {
     fn default() -> Self {
-        Self { nodes: BTreeMap::new(), edges: BTreeSet::new() }
+        Self {
+            nodes: BTreeMap::new(),
+            edges: BTreeSet::new(),
+        }
     }
 }
 
@@ -76,13 +79,19 @@ impl<T> DirectedGraph<T> {
     }
 
     pub fn topological_order(&self) -> Result<Vec<String>, GraphError> {
-        let mut degree = self.nodes.keys().map(|id| (id.clone(), 0usize))
+        let mut degree = self
+            .nodes
+            .keys()
+            .map(|id| (id.clone(), 0usize))
             .collect::<BTreeMap<_, _>>();
         for (_, target) in &self.edges {
             *degree.get_mut(target).ok_or(GraphError::UnknownNode)? += 1;
         }
-        let mut ready = degree.iter().filter(|(_, count)| **count == 0)
-            .map(|(id, _)| id.clone()).collect::<BTreeSet<_>>();
+        let mut ready = degree
+            .iter()
+            .filter(|(_, count)| **count == 0)
+            .map(|(id, _)| id.clone())
+            .collect::<BTreeSet<_>>();
         let mut out = Vec::new();
         while let Some(next) = ready.iter().next().cloned() {
             ready.remove(&next);

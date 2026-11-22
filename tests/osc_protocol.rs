@@ -54,7 +54,7 @@ fn malformed_and_truncated_packets_fail() {
         })),
         Err(OscError::InvalidAddress)
     );
-    assert!(decode(&b"/abc").is_err());
+    assert!(decode(b"/abc").is_err());
     assert_eq!(decode(b"#bundle\0"), Err(OscError::Truncated));
     assert_eq!(
         decode(&[b'/', b'a', 0, 1, b',', b'i', 0, 0, 0, 0, 0, 1]),

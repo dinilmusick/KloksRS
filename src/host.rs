@@ -1,7 +1,7 @@
 //! Host-injected time, filesystem and network capabilities; allocation-only.
 //! No filesystem, socket, process or resident scheduler is created by KloksRS.
-use alloc::vec::Vec;
 use crate::{ClockError, ClockService, ClockTick};
+use alloc::vec::Vec;
 
 pub trait MonotonicTime {
     fn now_millis(&self) -> f64;
@@ -35,7 +35,9 @@ fn valid_name(name: &str) -> bool {
         && !name.starts_with('/')
         && !name.contains('\\')
         && !name.contains('\0')
-        && name.split('/').all(|part| !part.is_empty() && part != "." && part != "..")
+        && name
+            .split('/')
+            .all(|part| !part.is_empty() && part != "." && part != "..")
 }
 
 pub struct ResourceClient<F: FileSystemPort> {
@@ -55,8 +57,14 @@ impl<F: FileSystemPort> ResourceClient<F> {
         if !valid_name(name) {
             return Err(HostPortError::InvalidName);
         }
-        let data = self.backend.read(name, self.max_bytes).map_err(HostPortError::Backend)?;
-        if data.as_ref().is_some_and(|value| value.len() > self.max_bytes) {
+        let data = self
+            .backend
+            .read(name, self.max_bytes)
+            .map_err(HostPortError::Backend)?;
+        if data
+            .as_ref()
+            .is_some_and(|value| value.len() > self.max_bytes)
+        {
             return Err(HostPortError::TooLarge);
         }
         Ok(data)
@@ -69,7 +77,9 @@ impl<F: FileSystemPort> ResourceClient<F> {
         if bytes.len() > self.max_bytes {
             return Err(HostPortError::TooLarge);
         }
-        self.backend.write(name, bytes).map_err(HostPortError::Backend)
+        self.backend
+            .write(name, bytes)
+            .map_err(HostPortError::Backend)
     }
 
     pub fn delete(&mut self, name: &str) -> Result<bool, HostPortError<F::Error>> {
@@ -87,8 +97,12 @@ impl<F: FileSystemPort> ResourceClient<F> {
 /// A host-owned request/response interface. The host owns retries and connections.
 pub trait NetworkPort {
     type Error;
-    fn exchange(&mut self, endpoint: &str, request: &[u8], max_response_bytes: usize)
-        -> Result<Vec<u8>, Self::Error>;
+    fn exchange(
+        &mut self,
+        endpoint: &str,
+        request: &[u8],
+        max_response_bytes: usize,
+    ) -> Result<Vec<u8>, Self::Error>;
 }
 
 pub struct NetworkClient<N: NetworkPort> {
@@ -104,15 +118,20 @@ impl<N: NetworkPort> NetworkClient<N> {
         Ok(Self { backend, max_bytes })
     }
 
-    pub fn exchange(&mut self, endpoint: &str, bytes: &[u8])
-        -> Result<Vec<u8>, HostPortError<N::Error>> {
+    pub fn exchange(
+        &mut self,
+        endpoint: &str,
+        bytes: &[u8],
+    ) -> Result<Vec<u8>, HostPortError<N::Error>> {
         if endpoint.trim().is_empty() {
             return Err(HostPortError::InvalidName);
         }
         if bytes.len() > self.max_bytes {
             return Err(HostPortError::TooLarge);
         }
-        let response = self.backend.exchange(endpoint, bytes, self.max_bytes)
+        let response = self
+            .backend
+            .exchange(endpoint, bytes, self.max_bytes)
             .map_err(HostPortError::Backend)?;
         if response.len() > self.max_bytes {
             return Err(HostPortError::TooLarge);

@@ -16,3 +16,8 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo test --all-targets
       - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo fmt --manifest-path consumer-smoke/Cargo.toml -- --check
+      - run: cargo run --manifest-path consumer-smoke/Cargo.toml --offline
+      - run: cargo clippy --manifest-path consumer-smoke/Cargo.toml --all-targets --offline -- -D warnings
+      - run: cargo check --no-default-features --lib
+      - run: cargo clippy --no-default-features --lib -- -D warnings

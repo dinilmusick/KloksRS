@@ -3,6 +3,8 @@
 //! 67de26dd39161a0bc642038fdca75dcdfee8fae7).
 //! Does not request hardware access, spawn listeners or emit to endpoints.
 
+use alloc::{format, string::String};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MidiEventKind {
     NoteOn,

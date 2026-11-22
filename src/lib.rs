@@ -8,6 +8,8 @@ extern crate alloc;
 use alloc::vec::Vec;
 pub mod graph;
 pub mod midi;
+pub mod midi_protocol;
+pub mod osc;
 pub mod registry;
 
 // All clock tick/bar positions are nonnegative. Rust floating-point-to-u64 casts

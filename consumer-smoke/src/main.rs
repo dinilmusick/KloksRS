@@ -14,4 +14,24 @@ fn main() {
     assert_eq!(clock.stop(1510.0).unwrap().len(), 0);
     clock.dispose();
     assert!(clock.start(1600.0).is_err());
+
+    let bend = kloksrs::midi_protocol::MidiMessage::PitchBend {
+        channel: 0,
+        value: 8191,
+    };
+    let bend_bytes = kloksrs::midi_protocol::encode(&bend).expect("MIDI encode");
+    assert_eq!(
+        kloksrs::midi_protocol::decode(&bend_bytes).expect("MIDI decode"),
+        bend
+    );
+
+    let packet = kloksrs::osc::OscPacket::Message(kloksrs::osc::OscMessage {
+        address: "/native/clock".into(),
+        args: vec![kloksrs::osc::OscArgument::Int(24)],
+    });
+    let packet_bytes = kloksrs::osc::encode(&packet).expect("OSC encode");
+    assert_eq!(
+        kloksrs::osc::decode(&packet_bytes).expect("OSC decode"),
+        packet
+    );
 }

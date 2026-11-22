@@ -1,7 +1,13 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 //! Portable deterministic clock from Kloks package audio-midi clock/clock.ts.
 //! Source pin: 67de26dd39161a0bc642038fdca75dcdfee8fae7.
 //! The caller owns the scheduler and calls poll() with monotonic milliseconds.
 //! This module never spawns timers, threads, resident agents or background work.
+
+extern crate alloc;
+use alloc::vec::Vec;
+pub mod registry;
+pub mod graph;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ClockRunState {

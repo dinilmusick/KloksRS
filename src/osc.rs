@@ -248,7 +248,7 @@ fn decode_internal(bytes: &[u8], depth: usize) -> Result<OscPacket, OscError> {
                 if padded > bytes.len() {
                     return Err(OscError::Truncated);
                 }
-                if bytes[*pos..padded].iter().any(|&v| v != 0) {
+                if bytes[pos..padded].iter().any(|&v| v != 0) {
                     return Err(OscError::InvalidPadding);
                 }
                 pos = padded;

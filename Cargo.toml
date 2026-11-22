@@ -1,0 +1,9 @@
+[package]
+name = "kloksrs"
+version = "0.1.0"
+edition = "2021"
+description = "Rust deterministic musical clock counterpart for Kloks"
+license = "MIT"
+
+[lib]
+path = "src/lib.rs"

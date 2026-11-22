@@ -7,6 +7,7 @@
 extern crate alloc;
 use alloc::vec::Vec;
 pub mod graph;
+pub mod host;
 pub mod midi;
 pub mod midi_protocol;
 pub mod osc;

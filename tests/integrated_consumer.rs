@@ -1,5 +1,5 @@
+use kloksrs::midi::{control_change, decode_channel_event, note_off, note_on, MidiEventKind};
 use kloksrs::{ClockOptions, ClockService};
-use kloksrs::midi::{decode_channel_event, note_on, note_off, control_change, MidiEventKind};
 
 #[test]
 fn externally_visible_clock_and_legacy_midi_work_together() {

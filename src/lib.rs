@@ -10,6 +10,7 @@ pub mod graph;
 pub mod host;
 pub mod midi;
 pub mod midi_protocol;
+pub mod midi_service;
 pub mod osc;
 pub mod registry;
 

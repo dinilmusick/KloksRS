@@ -12,6 +12,7 @@ pub mod midi;
 pub mod midi_protocol;
 pub mod midi_service;
 pub mod osc;
+pub mod osc_service;
 pub mod registry;
 
 // All clock tick/bar positions are nonnegative. Rust floating-point-to-u64 casts

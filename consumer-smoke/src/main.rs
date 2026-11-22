@@ -1,6 +1,9 @@
+mod host_smoke;
+
 use kloksrs::{ClockOptions, ClockRunState, ClockService};
 
 fn main() {
+    host_smoke::run();
     let mut clock = ClockService::new(ClockOptions::default()).expect("valid options");
     assert_eq!(clock.snapshot(0.0).unwrap().state, ClockRunState::Stopped);
     clock.start(10.0).unwrap();

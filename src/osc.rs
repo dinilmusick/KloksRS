@@ -78,10 +78,14 @@ fn take<'a>(bytes: &'a [u8], pos: &mut usize, amount: usize) -> Result<&'a [u8],
 
 fn read_string(bytes: &[u8], pos: &mut usize) -> Result<String, OscError> {
     let start = *pos;
-    let width = bytes.get(start..).ok_or(OscError::Truncated)?
-        .iter().position(|&b| b == 0).ok_or(OscError::Truncated)?;
-    let content = core::str::from_utf8(&bytes[start..start + width])
-        .map_err(|_| OscError::InvalidString)?;
+    let width = bytes
+        .get(start..)
+        .ok_or(OscError::Truncated)?
+        .iter()
+        .position(|&b| b == 0)
+        .ok_or(OscError::Truncated)?;
+    let content =
+        core::str::from_utf8(&bytes[start..start + width]).map_err(|_| OscError::InvalidString)?;
     let end = start.checked_add(width + 1).ok_or(OscError::TooLarge)?;
     let padded = end.checked_add(3).ok_or(OscError::TooLarge)? & !3;
     if padded > bytes.len() {
@@ -95,17 +99,23 @@ fn read_string(bytes: &[u8], pos: &mut usize) -> Result<String, OscError> {
 }
 
 fn read_i32(bytes: &[u8], pos: &mut usize) -> Result<i32, OscError> {
-    let data: [u8; 4] = take(bytes, pos, 4)?.try_into().map_err(|_| OscError::Truncated)?;
+    let data: [u8; 4] = take(bytes, pos, 4)?
+        .try_into()
+        .map_err(|_| OscError::Truncated)?;
     Ok(i32::from_be_bytes(data))
 }
 
 fn read_i64(bytes: &[u8], pos: &mut usize) -> Result<i64, OscError> {
-    let data: [u8; 8] = take(bytes, pos, 8)?.try_into().map_err(|_| OscError::Truncated)?;
+    let data: [u8; 8] = take(bytes, pos, 8)?
+        .try_into()
+        .map_err(|_| OscError::Truncated)?;
     Ok(i64::from_be_bytes(data))
 }
 
 fn read_u64(bytes: &[u8], pos: &mut usize) -> Result<u64, OscError> {
-    let data: [u8; 8] = take(bytes, pos, 8)?.try_into().map_err(|_| OscError::Truncated)?;
+    let data: [u8; 8] = take(bytes, pos, 8)?
+        .try_into()
+        .map_err(|_| OscError::Truncated)?;
     Ok(u64::from_be_bytes(data))
 }
 
@@ -238,7 +248,7 @@ fn decode_internal(bytes: &[u8], depth: usize) -> Result<OscPacket, OscError> {
                 if padded > bytes.len() {
                     return Err(OscError::Truncated);
                 }
-                if bytes[*&pos..padded].iter().any(|&v| v != 0) {
+                if bytes[*pos..padded].iter().any(|&v| v != 0) {
                     return Err(OscError::InvalidPadding);
                 }
                 pos = padded;
@@ -291,7 +301,10 @@ pub struct OscClient<T: OscTransport> {
 
 impl<T: OscTransport> OscClient<T> {
     pub fn new(transport: T) -> Self {
-        Self { transport, endpoints: BTreeMap::new() }
+        Self {
+            transport,
+            endpoints: BTreeMap::new(),
+        }
     }
 
     pub fn add_endpoint(&mut self, endpoint: OscEndpoint) -> Result<(), OscSendError<T::Error>> {
@@ -309,10 +322,19 @@ impl<T: OscTransport> OscClient<T> {
         self.endpoints.remove(id)
     }
 
-    pub fn send_packet(&mut self, id: &str, packet: &OscPacket) -> Result<(), OscSendError<T::Error>> {
-        let endpoint = self.endpoints.get(id).ok_or(OscSendError::UnknownEndpoint)?;
+    pub fn send_packet(
+        &mut self,
+        id: &str,
+        packet: &OscPacket,
+    ) -> Result<(), OscSendError<T::Error>> {
+        let endpoint = self
+            .endpoints
+            .get(id)
+            .ok_or(OscSendError::UnknownEndpoint)?;
         let bytes = encode(packet).map_err(OscSendError::Codec)?;
-        self.transport.send(endpoint, &bytes).map_err(OscSendError::Host)
+        self.transport
+            .send(endpoint, &bytes)
+            .map_err(OscSendError::Host)
     }
 
     pub fn accept(&self, bytes: &[u8]) -> Result<OscPacket, OscError> {

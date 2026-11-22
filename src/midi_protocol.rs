@@ -99,7 +99,10 @@ pub fn encode(message: &MidiMessage) -> Result<Vec<u8>, MidiError> {
                 ChannelKind::ChannelPressure => 0xd0,
             };
             let mut bytes = alloc::vec![channel_status(*channel, family)?, seven_bit(*data)?];
-            if !matches!(kind, ChannelKind::ProgramChange | ChannelKind::ChannelPressure) {
+            if !matches!(
+                kind,
+                ChannelKind::ProgramChange | ChannelKind::ChannelPressure
+            ) {
                 bytes.push(seven_bit(*value)?);
             }
             Ok(bytes)
@@ -123,7 +126,11 @@ pub fn decode(input: &[u8]) -> Result<MidiMessage, MidiError> {
     }
     let family = status & 0xf0;
     let channel = status & 0x0f;
-    let expected = if family == 0xc0 || family == 0xd0 { 2 } else { 3 };
+    let expected = if family == 0xc0 || family == 0xd0 {
+        2
+    } else {
+        3
+    };
     if input.len() != expected {
         return Err(MidiError::InvalidLength);
     }

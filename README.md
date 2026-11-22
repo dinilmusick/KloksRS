@@ -12,11 +12,11 @@ Renderer-neutral Rust services adapted from [Kloks](https://github.com/dinilmusi
 
 The above is merged on `main` at `9a6bc7f0f30491f829cff454eadff8a2ba3b55e9`, with [green main CI](https://github.com/dinilmusick/KloksRS/actions/runs/45008554204). A later `main` commit may incorporate additional work.
 
-## Host adapter candidate (PR #9)
+## Host adapters merged (PR #9)
 
-The `feat/kloksrs-wave3-host-adapters-20261122` branch proposes: `host` traits for clock time, bounded filesystem and network exchange; `midi_service` for injected physical device discovery and logical MIDI endpoints; `osc_service` for injected OSC listener start/stop, subscription matching and bounded, host-drained dispatch.
+The `host` module supplies explicit injected clock time, bounded filesystem and network ports. `midi_service` provides host-discovered physical devices, in-process logical endpoints, input/output connection, SysEx gating and bounded event delivery. `osc_service` provides injected OSC server lifecycle, client sends, wildcard subscriptions and bounded host-drained dispatch. **Actual hardware, UDP/network sockets and storage remain responsibilities of a platform host.**
 
-**These candidate interfaces are not certified as merged until [PR #9](https://github.com/dinilmusick/KloksRS/pull/9) passes exact-head CI and is safely merged.** The crate never provides real MIDI hardware, filesystem access, UDP sockets or resident schedulers unless a platform-specific host implements the corresponding port.
+These interfaces were merged in [PR #9](https://github.com/dinilmusick/KloksRS/pull/9), with exact-head [PR CI 45018013054](https://github.com/dinilmusick/KloksRS/actions/runs/45018013054) and merge commit `891e227cd6f857e72005dd15ff9a0a3c74250ab1`. The separate `consumer-smoke` package exercises these public host APIs in addition to the clock and MIDI/OSC codecs.
 
 ## Build and consumer checks
 

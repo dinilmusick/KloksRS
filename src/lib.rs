@@ -1,7 +1,22 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 //! Portable deterministic clock from Kloks package audio-midi clock/clock.ts.
 //! Source pin: 67de26dd39161a0bc642038fdca75dcdfee8fae7.
 //! The caller owns the scheduler and calls poll() with monotonic milliseconds.
 //! This module never spawns timers, threads, resident agents or background work.
+
+extern crate alloc;
+use alloc::vec::Vec;
+pub mod graph;
+pub mod midi;
+pub mod registry;
+
+// All clock tick/bar positions are nonnegative. Rust floating-point-to-u64 casts
+// truncate toward zero, exactly matching floor on [0, 2^64). Values beyond the
+// integer range saturate; snapshot() rejects that bound as InvalidTime.
+// This keeps clock arithmetic portable without a host math runtime.
+fn floor_nonnegative(value: f64) -> f64 {
+    (value as u64) as f64
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ClockRunState {
@@ -148,8 +163,8 @@ impl ClockService {
         let beat = (self.anchor_beat + delta * self.options.tempo / 60000.0).max(0.0);
         let beats_per_bar =
             f64::from(self.options.numerator) * (4.0 / f64::from(self.options.denominator));
-        let ticks = (beat * f64::from(self.options.resolution) + 1e-9).floor();
-        let bar = (beat / beats_per_bar).floor() + 1.0;
+        let ticks = floor_nonnegative(beat * f64::from(self.options.resolution) + 1e-9);
+        let bar = floor_nonnegative(beat / beats_per_bar) + 1.0;
         if !beat.is_finite()
             || !elapsed_ms.is_finite()
             || ticks >= u64::MAX as f64
@@ -181,7 +196,7 @@ impl ClockService {
         self.anchor_time = now;
         self.state = ClockRunState::Running;
         self.last_tick =
-            (self.anchor_beat * f64::from(self.options.resolution) + 1e-9).floor() as u64;
+            floor_nonnegative(self.anchor_beat * f64::from(self.options.resolution) + 1e-9) as u64;
         Ok(())
     }
 
@@ -296,7 +311,7 @@ impl ClockService {
         validate_resolution(resolution)?;
         let beat = self.snapshot(now)?.beat;
         self.options.resolution = resolution;
-        self.last_tick = (beat * f64::from(resolution) + 1e-9).floor() as u64;
+        self.last_tick = floor_nonnegative(beat * f64::from(resolution) + 1e-9) as u64;
         Ok(())
     }
 
@@ -313,5 +328,3 @@ impl ClockService {
         self.state = ClockRunState::Stopped;
     }
 }
-
-pub mod midi;

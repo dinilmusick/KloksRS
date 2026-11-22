@@ -317,3 +317,5 @@ impl ClockService {
 pub mod midi;
 
 pub mod midi_protocol;
+
+pub mod osc;
